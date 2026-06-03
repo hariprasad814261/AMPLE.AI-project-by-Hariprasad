@@ -9,7 +9,7 @@
 // ============================================================
 // CONFIG — Replace with your deployed Vercel URL
 // ============================================================
-const API_BASE_URL = 'YOUR_VERCEL_BACKEND_URL';  // e.g. https://ample-api.vercel.app
+const API_BASE_URL = 'https://ampleai-project-by-hariprasad.vercel.app';  // e.g. https://ample-api.vercel.app
 
 // ============================================================
 // Helper
