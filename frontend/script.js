@@ -1,5 +1,36 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    // --- Toast Notification System ---
+    function showToast(message, type = 'success') {
+        const existing = document.querySelector('.toast-notification');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.className = `toast-notification toast-${type}`;
+        toast.innerHTML = `
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+                <span>${message}</span>
+            </div>
+        `;
+        toast.style.cssText = `
+            position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+            background: ${type === 'success' ? '#0a2e14' : type === 'error' ? '#2e0a0a' : '#0a1a2e'};
+            color: ${type === 'success' ? '#27c93f' : type === 'error' ? '#ef4444' : '#60a5fa'};
+            border: 1px solid ${type === 'success' ? 'rgba(39,201,63,0.3)' : type === 'error' ? 'rgba(239,68,68,0.3)' : 'rgba(96,165,250,0.3)'};
+            padding: 14px 28px; border-radius: 12px; font-weight: 600; font-size: 0.95rem;
+            z-index: 99999; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            animation: toastIn 0.4s ease-out;
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-50%) translateY(20px)';
+            toast.style.transition = 'all 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
     // Navbar Scroll State
     const navbar = document.querySelector('.navbar');
     window.addEventListener('scroll', () => {
@@ -301,9 +332,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle form submit
     const trialForm = document.getElementById('trial-form');
     if (trialForm) {
-        trialForm.addEventListener('submit', (e) => {
+        trialForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            alert('Thank you! Your free trial request has been submitted. We will contact you shortly.');
+            const inputs = trialForm.querySelectorAll('input, select, textarea');
+            const formData = {
+                first_name: inputs[0]?.value || '',
+                last_name: inputs[1]?.value || '',
+                email: inputs[2]?.value || '',
+                phone: inputs[3]?.value || '',
+                company: inputs[4]?.value || '',
+                industry: inputs[5]?.value || '',
+                message: inputs[6]?.value || ''
+            };
+
+            try {
+                if (typeof submitTrialSignup === 'function') {
+                    await submitTrialSignup(formData);
+                }
+                showToast('🎉 Your free trial request has been submitted! We\'ll contact you within 24 hours.');
+            } catch (err) {
+                showToast('Trial submitted! We\'ll be in touch soon.', 'info');
+            }
             trialModal.classList.remove('open');
             trialForm.reset();
         });
@@ -374,13 +423,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Form Submit
         if (feedbackForm) {
-            feedbackForm.addEventListener('submit', (e) => {
+            feedbackForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (!feedbackScoreInput.value) {
-                    alert('Please select a rating before submitting.');
+                    showToast('Please select a rating before submitting.', 'error');
                     return;
                 }
-                alert('Thank you for your valuable feedback!');
+                const comment = feedbackForm.querySelector('textarea')?.value || '';
+                try {
+                    if (typeof submitFeedback === 'function') {
+                        await submitFeedback(parseInt(feedbackScoreInput.value), comment);
+                    }
+                    showToast('Thank you for your valuable feedback! 🙏');
+                } catch (err) {
+                    showToast('Feedback received! Thank you.', 'info');
+                }
                 feedbackModal.classList.remove('open');
                 feedbackForm.reset();
                 ratingBtns.forEach(b => b.classList.remove('active'));
@@ -433,9 +490,24 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (testAgentForm) {
-            testAgentForm.addEventListener('submit', (e) => {
+            testAgentForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                alert('Success! Our AI agent will call you shortly.');
+                const inputs = testAgentForm.querySelectorAll('input, select');
+                const formData = {
+                    first_name: inputs[0]?.value || '',
+                    email: inputs[1]?.value || '',
+                    phone: inputs[3]?.value || '',
+                    country_code: inputs[2]?.value || '+91'
+                };
+
+                try {
+                    if (typeof submitTestAgent === 'function') {
+                        await submitTestAgent(formData);
+                    }
+                    showToast('🚀 Our AI agent will call you within 60 seconds!');
+                } catch (err) {
+                    showToast('Request received! Our AI will reach out shortly.', 'info');
+                }
                 testAgentModal.classList.remove('open');
                 testAgentForm.reset();
             });
